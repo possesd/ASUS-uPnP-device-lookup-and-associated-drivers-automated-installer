@@ -1,0 +1,43 @@
+ROG-G635LW-Windows11-25H2-Installer v45
+=========================================
+
+Purpose of v45
+---------------
+v45 specifically fixes the two driver families reported as not installing during a
+non-script/manual observation: Realtek LAN and Intel Rapid Storage Technology (IRST).
+
+Realtek LAN fixes
+-----------------
+* Realtek LAN packages remain in the complete ASUS catalog archive.
+* RTL8111H (PCI DEV_8168) and RTL8125D (PCI DEV_8125) are treated as separate variants.
+* The Realtek association test now runs BEFORE generic ASUS catalog hardware-ID metadata,
+  preventing incomplete/over-broad Raw catalog fields from falsely rejecting the package.
+* A Realtek package cannot be considered satisfied by the other Realtek variant.
+* Realtek LAN packages are explicitly prioritized immediately after Intel platform
+  prerequisite drivers and before the generic driver/software queue.
+
+Intel IRST/VMD fixes
+--------------------
+* Intel Rapid Storage Technology (IRST)/VMD packages remain in the complete ASUS catalog.
+* IRST/VMD is explicitly prioritized immediately after Intel platform prerequisite drivers.
+* The association test recognizes Intel VMD/IRST storage controllers by controller name,
+  SCSIAdapter class, and known G635LW Arrow Lake-HX VMD PCI IDs.
+* Generic catalog metadata can no longer silently reject an otherwise applicable IRST package.
+* The package is retained in the archive even when Windows does not expose a VMD controller;
+  no unrelated storage driver is force-applied solely because the package exists.
+
+Catalog audit
+-------------
+* STAGE 07B now reports explicit counts for Realtek LAN and Intel IRST/VMD candidates.
+* A warning/error is logged if either critical package family is absent from the ASUS catalog.
+* No title/category deduplication is introduced; distinct ASUS package rows remain available.
+
+Other v44 functionality retained
+---------------------------------
+* Complete ASUS package pre-download before installer execution.
+* Persistent Desktop archive and SHA-256-aware resume.
+* USB hardware inventory and manufacturer/Windows fallback handling.
+* Same-package companion executable handling.
+* NVIDIA package processing before final Armoury Crate/Aura software stage.
+* Armoury Crate/Aura finalization after NVIDIA packages and Store companions.
+* BIOS/firmware is never flashed automatically.
