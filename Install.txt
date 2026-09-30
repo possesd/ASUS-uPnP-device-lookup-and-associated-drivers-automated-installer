@@ -1,0 +1,10 @@
+"Copy the downloaded .ps1 file to the Desktop. Then type 'powershell' in the windows searchbar and then 'right-click' 'run as Administrator'. Then copy and paste, the following:
+
+
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+Set-Location [Environment]::GetFolderPath("Desktop")
+Get-ChildItem -File -Filter "*Installer-v45.ps1"
+
+& ".\ROG-G635LW-Windows11-25H2-Installer-v45.ps1"
+
