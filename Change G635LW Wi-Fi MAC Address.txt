@@ -1,0 +1,234 @@
+# ============================================================
+# ASUS ROG Strix SCAR 16 G635LW
+# Wi-Fi MAC Address Changer
+# Windows 11 25H2
+# ============================================================
+
+$ErrorActionPreference = "Stop"
+
+Write-Host ""
+Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host " ASUS ROG Strix SCAR 16 G635LW - Wi-Fi MAC Changer" -ForegroundColor Cyan
+Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host ""
+
+# Find physical Wi-Fi adapters
+$wifiAdapters = Get-NetAdapter -Physical |
+    Where-Object {
+        $_.InterfaceDescription -match "Wi-Fi|Wireless|WLAN|802\.11"
+    }
+
+if (-not $wifiAdapters) {
+    Write-Host "ERROR: No physical Wi-Fi adapter was detected." -ForegroundColor Red
+    Read-Host "Press Enter to exit"
+    exit
+}
+
+Write-Host "Detected Wi-Fi adapter(s):" -ForegroundColor Green
+Write-Host ""
+
+$i = 1
+foreach ($adapter in $wifiAdapters) {
+    Write-Host "[$i] $($adapter.Name)" -ForegroundColor Yellow
+    Write-Host "    Description : $($adapter.InterfaceDescription)"
+    Write-Host "    Status      : $($adapter.Status)"
+    Write-Host "    Current MAC : $($adapter.MacAddress)"
+    Write-Host "    Index       : $($adapter.ifIndex)"
+    Write-Host ""
+    $i++
+}
+
+# Use first detected Wi-Fi adapter
+$adapter = $wifiAdapters | Select-Object -First 1
+
+Write-Host "Using:" -ForegroundColor Cyan
+Write-Host "  $($adapter.InterfaceDescription)"
+Write-Host "  Interface: $($adapter.Name)"
+Write-Host "  Current MAC: $($adapter.MacAddress)"
+Write-Host ""
+
+# Validate MAC input
+do {
+    $newMac = Read-Host "Enter the new MAC address (12 hexadecimal characters)"
+
+    $newMac = $newMac -replace '[-:\.]',''
+    $newMac = $newMac.ToUpper()
+
+    if ($newMac -notmatch '^[0-9A-F]{12}$') {
+        Write-Host ""
+        Write-Host "Invalid MAC address." -ForegroundColor Red
+        Write-Host "Example: 02A1B2C3D4E5" -ForegroundColor Yellow
+        Write-Host ""
+        $valid = $false
+        continue
+    }
+
+    # A unicast MAC is required.
+    # Bit 0 of the first octet must be 0.
+    $firstOctet = [Convert]::ToInt32($newMac.Substring(0,2),16)
+
+    if (($firstOctet -band 1) -ne 0) {
+        Write-Host ""
+        Write-Host "Invalid MAC: the address is multicast." -ForegroundColor Red
+        Write-Host "Use a unicast address. Example: 02A1B2C3D4E5" -ForegroundColor Yellow
+        Write-Host ""
+        $valid = $false
+        continue
+    }
+
+    # Locally administered address is recommended.
+    if (($firstOctet -band 2) -eq 0) {
+        Write-Host ""
+        Write-Host "WARNING: This is a globally administered MAC." -ForegroundColor Yellow
+        Write-Host "For spoofing, a locally administered address is recommended."
+        Write-Host "Example: 02A1B2C3D4E5"
+        Write-Host ""
+    }
+
+    $valid = $true
+
+} until ($valid)
+
+Write-Host ""
+Write-Host "Original MAC : $($adapter.MacAddress)" -ForegroundColor Cyan
+Write-Host "New MAC      : $newMac" -ForegroundColor Green
+Write-Host ""
+
+$confirm = Read-Host "Apply this MAC address? (Y/N)"
+
+if ($confirm -notmatch '^[Yy]$') {
+    Write-Host "Operation cancelled." -ForegroundColor Yellow
+    exit
+}
+
+Write-Host ""
+Write-Host "Locating adapter registry entry..." -ForegroundColor Cyan
+
+# Find the adapter's registry class entry using PnP information
+$pnp = Get-PnpDevice |
+    Where-Object {
+        $_.FriendlyName -eq $adapter.InterfaceDescription
+    } |
+    Select-Object -First 1
+
+if (-not $pnp) {
+    Write-Host "Could not directly identify the PnP device." -ForegroundColor Yellow
+}
+
+# Find matching Network Address registry property
+$netClassPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}"
+
+$matchingKey = $null
+
+Get-ChildItem $netClassPath -ErrorAction SilentlyContinue |
+    Where-Object { $_.PSChildName -match '^\d{4}$' } |
+    ForEach-Object {
+
+        $props = Get-ItemProperty $_.PSPath -ErrorAction SilentlyContinue
+
+        if ($props.DriverDesc -eq $adapter.InterfaceDescription) {
+            $matchingKey = $_
+        }
+    }
+
+if (-not $matchingKey) {
+    Write-Host ""
+    Write-Host "ERROR: Could not find the adapter's registry entry." -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Your Wi-Fi driver may not support Windows' Network Address override."
+    Write-Host "In that case, the Device Manager Advanced tab must be checked."
+    Write-Host ""
+    Read-Host "Press Enter to exit"
+    exit
+}
+
+Write-Host "Registry entry found: $($matchingKey.PSChildName)" -ForegroundColor Green
+
+# Save the existing Network Address value
+$oldValue = (Get-ItemProperty `
+    -Path $matchingKey.PSPath `
+    -Name "NetworkAddress" `
+    -ErrorAction SilentlyContinue).NetworkAddress
+
+Write-Host "Existing override: $oldValue"
+
+Write-Host ""
+Write-Host "Applying new MAC..." -ForegroundColor Cyan
+
+Set-ItemProperty `
+    -Path $matchingKey.PSPath `
+    -Name "NetworkAddress" `
+    -Value $newMac
+
+Write-Host "MAC override written successfully." -ForegroundColor Green
+
+Write-Host ""
+Write-Host "Restarting Wi-Fi adapter..." -ForegroundColor Cyan
+
+Disable-NetAdapter `
+    -Name $adapter.Name `
+    -Confirm:$false
+
+Start-Sleep -Seconds 3
+
+Enable-NetAdapter `
+    -Name $adapter.Name `
+    -Confirm:$false
+
+Start-Sleep -Seconds 5
+
+Write-Host ""
+Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host " Verification" -ForegroundColor Cyan
+Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host ""
+
+$updated = Get-NetAdapter -Name $adapter.Name
+
+Write-Host "Adapter      : $($updated.InterfaceDescription)"
+Write-Host "Interface    : $($updated.Name)"
+Write-Host "Status       : $($updated.Status)"
+Write-Host "Reported MAC : $($updated.MacAddress)" -ForegroundColor Green
+
+Write-Host ""
+
+if ($updated.MacAddress -replace '[-:]','' -eq $newMac) {
+    Write-Host "SUCCESS: The Wi-Fi adapter is using the new MAC address." -ForegroundColor Green
+}
+else {
+    Write-Host "WARNING: Windows is not reporting the requested MAC." -ForegroundColor Yellow
+    Write-Host "The driver may not support Network Address overrides."
+}
+
+Write-Host ""
+Read-Host "Press Enter to exit"
+A good MAC to test with
+
+For example:
+
+02A1B2C3D4E5
+
+The 02 is deliberate: it makes the address locally administered and unicast, which is appropriate for a MAC override.
+
+To restore the original MAC
+
+If you want to undo the change, run this as Administrator:
+
+$wifi = Get-NetAdapter -Physical |
+    Where-Object {$_.InterfaceDescription -match "Wi-Fi|Wireless|WLAN|802\.11"} |
+    Select-Object -First 1
+
+$path = "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}"
+
+$key = Get-ChildItem $path |
+    Where-Object {
+        $_.PSChildName -match '^\d{4}$' -and
+        (Get-ItemProperty $_.PSPath -ErrorAction SilentlyContinue).DriverDesc -eq $wifi.InterfaceDescription
+    } |
+    Select-Object -First 1
+
+Remove-ItemProperty -Path $key.PSPath -Name NetworkAddress -ErrorAction SilentlyContinue
+
+Disable-NetAdapter -Name $wifi.Name -Confirm:$false
+Start-Sleep 3
+Enable-NetAdapter -Name $wifi.Name -Confirm:$false
