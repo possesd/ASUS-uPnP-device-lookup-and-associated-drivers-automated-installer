@@ -1,0 +1,1208 @@
+﻿ASUS ROG STRIX SCAR 16 G635LW — WINDOWS 11 INSTALLER v84
+CUMULATIVE CHANGELOG / HISTORICAL RECORD
+==========================================================================
+
+
+CURRENT FOLLOW-UP — v84 PACKAGE SELECTION AND INTEL GRAPHICS (2026-10-13)
+=============================================================================
+1. LATEST VERSION ONLY FOR ASUS DRIVERS AND UTILITIES
+   - The newest-version selector now runs on both driver and non-driver ASUS catalog
+     candidates. Older ASUS System Control Interface v3 releases and older Virtual
+     Assistant releases should be suppressed before the global download phase.
+   - Existing native x64 / ARM64 / x86 / neutral architecture preference is retained.
+   - The ASUS package list is selected once during catalog discovery and then consumed
+     by the global download-first/install-second workflow.
+
+2. FIXED INTEL ONBOARD VGA PACKAGE MISCLASSIFICATION
+   - The prior Store-app title matcher included the phrase "Intel Graphic driver".
+     That incorrectly mapped the ASUS OEM Intel graphics driver candidate to Intel
+     Graphics Command Center, causing the actual ASUS executable (Graphic_ROG_Intel /
+     Intel Graphic driver) not to be downloaded as a driver.
+   - Removed that false match. Intel Graphic driver / Graphic_ROG_Intel candidates
+     now remain driver packages and are included in an explicit catalog audit.
+   - The audit logs the selected ASUS package title, version, and filename; if the
+     official catalog does not expose a matching package, it warns rather than inventing
+     a URL or substituting a generic driver.
+
+3. ADDED INTEL GRAPHICS SOFTWARE MICROSOFT STORE APP
+   - Added Intel Graphics Software as an explicit required Microsoft Store companion for
+     the G635LW's Intel onboard graphics, Product ID 9P8K5G2MWW6Z.
+   - It is separate from Intel Graphics Command Center (Product ID 9PLFNLNT3G5G);
+     the two applications no longer share an ambiguous title mapping.
+   - The new Store app uses the existing official msstore/WinGet flow and Intel graphics
+     driver prerequisite gate.
+
+4. PRESERVED PROJECT REQUIREMENTS
+   - Stable script filename remains ASUS-Win11-Portable-Online-Installer_v84.ps1.
+   - The ZIP retains exactly four files, including Install.txt with its existing bytes.
+   - Download/verify/archive all selected content before installation.
+   - Persistent Windows Update disabling remains enabled; Windows Update workflows are
+     not reintroduced.
+   - BIOS/firmware flashing remains excluded.
+   - NVIDIA Broadcast AR, Audio Effects, and Video Effects SDK selection remains matched
+     to the detected NVIDIA GPU generation, with no silent fallback to RTX 50 packages.
+
+5. VALIDATION LIMITATION
+   - Static source checks and ZIP integrity checks were performed.
+   - Native Windows PowerShell parsing and runtime execution were not available in this
+     environment; this is not represented as a Windows runtime-tested build.
+
+
+
+ARCHIVED HISTORY
+===============
+
+All standalone changelog texts recovered from the current working files and ChatGPT Library are preserved below, labelled with their original filenames. Multiple v80 build-specific changelogs are all retained because they document distinct fixes.
+
+
+LEGACY HISTORY RECOVERED FROM EMBEDDED SCRIPT COMMENTS (APPROX. v12-v32)
+================================================================================
+These notes are reconstructed from version-history comments retained inside earlier
+installer scripts. They are not presented as verbatim standalone changelogs because
+not every standalone changelog from these versions was recoverable.
+
+- v12: Controlled multi-package reboot batching. Installer exit code 3010 was treated
+  as successful installation with a deferred reboot; a limited attended package batch
+  could continue before reboot. Exit code 1641 remained a hard stop when an installer
+  had already initiated a reboot. Persistent state used the boot marker to track batches.
+- v14: Prioritized the ASUS Intel Graphics package for the Core Ultra 9 275HX ahead of
+  other Intel platform packages and Intel XTU.
+- v16: Retained all available architecture variants, prioritizing x64, then ARM64,
+  x86, and neutral/unspecified packages rather than excluding non-x64 variants.
+- v26: Added cleanup of legacy scheduled resume tasks/state so old installer generations
+  would not race after reboot; retained terminal hold-open behavior and the unbounded PnP scan.
+- v28/v30: Added resume-state schema compatibility and LocalPath normalization; improved
+  local path diagnostics; retained Desktop/OneDrive-compatible paths; added live transfer
+  percentage, transferred size, elapsed time, and throughput; used a direct-download
+  progress engine; kept pre-detection stages for validation/preparation and deferred
+  the main package work until after hardware detection. Earlier versions also experimented
+  with post-install hardware/update refreshes; those were later superseded by v33's
+  one-authoritative-baseline-per-invocation rule.
+- v33: Established exactly one unbounded PnP scan and one authoritative hardware,
+  driver, and software baseline per script invocation. Automatic reboot-resume starts
+  a new invocation and therefore creates one fresh baseline.
+- v34-v42: Detailed standalone changelogs are included below.
+- Gaps: no standalone changelog files for every individual version v1-v11, v13,
+  v15, v17-v25, v27, v29, or every version v43-v56/v58-v63 were found in the files
+  available during this consolidation. Where only embedded comments survived, this
+  file labels the result as reconstructed history instead of inventing missing entries.
+
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v33.txt
+==========================================================================
+
+ROG Strix SCAR 16 G635LW - Windows 11 25H2 Installer v33
+
+v33 change: single one-time hardware/driver/software baseline per script invocation.
+
+1. PnP detection
+   - The unbounded pnputil /scan-devices operation now runs exactly once, at the start of each script invocation.
+   - There are no later /scan-devices calls anywhere in the package, manufacturer, Windows Update, or final verification phases.
+   - The initial scan has no timeout and is allowed to complete fully.
+
+2. Hardware / driver / software inventory
+   - Hardware IDs are captured once immediately after the initial PnP scan.
+   - Installed driver versions are captured once.
+   - Installed software versions/registry entries are captured once.
+   - These STAGE 06 snapshots are the only local hardware/driver/software inventory used during that invocation.
+   - Final report driver CSV uses the original STAGE 06 driver snapshot rather than querying Win32_PnPSignedDriver again.
+   - Manufacturer fallback Intel verification also uses the original snapshot rather than re-querying installed drivers.
+
+3. Package/update phases
+   - ASUS package installation, manufacturer fallback installation, and Windows Update retain the original STAGE 06 baseline.
+   - Post-install PnP and installed-state refreshes were removed.
+   - Persistent package resume state, install ledger, downloaded archives, and reboot checkpoints remain in use.
+
+4. Reboots / resume
+   - On an actual reboot, the scheduled AtStartup resume task launches v33 again.
+   - That new invocation performs exactly one fresh unbounded PnP scan and one fresh baseline, then resumes from persistent state.
+   - Thus there is one baseline per boot/script invocation, not repeated detection throughout the same run.
+
+Note: because v33 intentionally does not re-read installed driver/software state after an installation, decisions during a single invocation are based on the initial baseline plus the persistent package checkpoint/ledger and package ordering. A reboot creates a new baseline.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v34.txt
+==========================================================================
+
+ROG-G635LW Windows 11 25H2 Driver & Software Installer v34
+
+v34 fixes the Microsoft Store / WinGet error observed on a fresh Windows 11 25H2 installation:
+
+  0x8A15005E : The server certificate did not match any of the expected values.
+
+Observed in v33 during STAGE 07A while installing MyASUS (Microsoft Store package ID 9N7R5S6B0ZZH).
+
+Changes:
+- Added Invoke-WingetMsStoreInstall, a common helper for Microsoft Store installs used by MyASUS and the Intel Graphics Command Center companion package.
+- A normal Microsoft Store installation is attempted first.
+- If WinGet returns 0x8A15005E, v34 temporarily enables the WinGet administrator setting BypassCertificatePinningForMicrosoftStore and retries the same Store operation once.
+- The certificate-pinning bypass is restored immediately after the retry; it is NOT left enabled by the installer when v34 started with it disabled.
+- The helper checks `winget --info` so that an already-enabled certificate-pinning bypass is not unnecessarily disabled afterward.
+- The MyASUS pre-install `winget list --source msstore` query was removed. On the affected fresh installation that query can itself hit the same certificate-pinning failure before the actual install is attempted.
+- MyASUS remains non-blocking: if the Store operation cannot be completed, ASUS full packages and Windows Update continue.
+- The Intel Graphics Command Center Microsoft Store companion package uses the same certificate-pinning retry helper.
+- No changes were made to the v33 one-time PnP detection rule: exactly one unbounded `pnputil /scan-devices` occurs per script invocation, followed by exactly one authoritative hardware/driver/software baseline. A new baseline occurs only when a new script invocation starts, including an automatic post-reboot resume.
+- No BIOS/firmware is automatically flashed.
+
+Security note:
+Microsoft documents certificate pinning as an additional security control for the Microsoft Store source. The temporary bypass is used only after the specific 0x8A15005E failure and is restored immediately afterward. A persistent bypass is not recommended.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v35.txt
+==========================================================================
+
+ROG G635LW Windows 11 25H2 Installer v35
+==========================================
+
+v35 is based on v34 and addresses the ASUS catalog discovery failure seen after
+reboot on fresh Windows 11 installations.
+
+Observed v34 issue:
+- ASUS catalog discovery failed immediately with:
+  "The remote name could not be resolved: 'rog.asus.com'"
+  and the same DNS failure for www.asus.com.
+- This is a DNS/network readiness failure, not an ASUS package-selection or
+  hardware-association failure.
+
+v35 changes:
+1. ASUS catalog discovery now performs a DNS + TCP/443 readiness check before
+   querying the ASUS catalog.
+2. The readiness check retries for up to 5 minutes and checks both:
+   - rog.asus.com
+   - www.asus.com
+3. DNS client cache is cleared between failed readiness attempts.
+4. Each ASUS catalog endpoint is retried up to 3 times with a short delay and
+   DNS-cache refresh between attempts.
+5. If the ASUS response is still unavailable, the function exits cleanly without
+   advancing the ASUS package checkpoint, so the persistent archive/resume state
+   remains intact for the next v35 invocation.
+6. Added a null-response guard before JSON parsing so a failed catalog request
+   cannot produce a secondary null-response parsing exception.
+7. Corrected stale v26/v33 user-facing branding in the current v35 script.
+8. The v33/v34 one-time-per-invocation PnP baseline remains unchanged:
+   exactly one unbounded PnP rescan and one authoritative hardware/driver/software
+   inventory per script invocation. A reboot creates a new invocation and therefore
+   a new baseline.
+9. v34's Microsoft Store certificate-pinning retry remains included.
+10. Reboot Y/N deferral and automatic post-reboot resume remain included.
+
+No BIOS or firmware flashing is added.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v36.txt
+==========================================================================
+
+ROG G635LW Windows 11 25H2 Installer v36
+==========================================
+
+v36 is based on v35 and fixes the Microsoft Store problem observed on a fresh Windows 11 installation.
+
+Microsoft Store repair/readiness
+--------------------------------
+- Before MyASUS or Intel Graphics Command Center is installed, v36 checks Microsoft.WindowsStore.
+- If Microsoft Store exists but is not registered for the current user, v36 attempts to re-register the existing package using the supported AppX registration mechanisms.
+- If Microsoft.StorePurchaseApp exists, its existing registration is refreshed as well.
+- v36 does NOT uninstall Microsoft Store, download a third-party Store package, or modify DNS settings.
+- v36 invokes wsreset.exe non-blocking after Store registration/readiness handling. Microsoft documents wsreset.exe as the standard Store cache reset/launch mechanism.
+- If Microsoft Store is genuinely absent from the local AppX inventory, v36 logs that condition and does not pretend the Store installation succeeded.
+- Store preparation runs at most once per script invocation.
+- If the automatic reboot-resume invocation is running as SYSTEM, Store application work is not attempted under SYSTEM because Store apps require an interactive user context.
+
+WinGet certificate handling
+---------------------------
+- Retains the v35 temporary BypassCertificatePinningForMicrosoftStore retry for 0x8A15005E.
+- The certificate-pinning bypass is temporary and is restored after the Store operation.
+
+ASUS catalog/network handling
+-----------------------------
+- Retains v35 ASUS catalog endpoint retries and network/DNS readiness checks.
+
+One-time hardware baseline
+--------------------------
+- Retains the v33/v35 behavior: exactly one unbounded PnP rescan per script invocation.
+- Exactly one authoritative hardware/driver/software baseline is captured after that rescan.
+- No later PnP rescan or hardware/driver/software inventory refresh occurs during the same invocation.
+- A new automatic post-reboot invocation receives one new baseline.
+
+Resume/reboot
+-------------
+- Retains automatic startup resume and persistent package checkpoints.
+- Reboot-deferred package state remains resumable without redownloading valid archived files.
+
+Version/branding
+----------------
+- Corrected internal Version, ProgramData state directory, stable resume script name, scheduled task name, user-facing reset text, and final report branding to v36.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v37.txt
+==========================================================================
+
+ROG G635LW Windows 11 25H2 Installer v37
+
+Microsoft Store / WinGet hang fixes
+
+- Fixes the v34/v36 Microsoft Store companion install stall where WinGet remained at "Starting package install..." without opening an installer window.
+- Removes the conflicting --interactive + --disable-interactivity combination. Microsoft Store companion packages are now forced to --silent --disable-interactivity.
+- Uses --scope user for Microsoft Store AppX/MSIX companion installation.
+- Adds a 180-second hard timeout to each WinGet Microsoft Store transaction. A timed-out WinGet process and child processes are terminated with taskkill /T /F.
+- Retains the existing temporary 0x8A15005E certificate-pinning retry, but the retry is also bounded by the same timeout.
+- Microsoft Store companion failures/timeouts are now treated as recoverable Store conditions rather than ASUS driver-install failures. The installer continues with remaining ASUS driver/software packages.
+- Deferred Store packages remain in the persistent ASUS package resume state and are retried on the next script invocation.
+- If a Store companion is deferred, non-Store ASUS/manufacturer utility work can continue in the same invocation; Windows Update can also continue.
+- The one-time STAGE 06 PnP/hardware/driver/software baseline remains unchanged. No later hardware/driver/software re-detection is introduced.
+- v32/v33 reboot-resume architecture remains intact.
+
+Important: the Microsoft Store itself is not removed, replaced with a third-party package, or silently reconfigured by v37.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v38.txt
+==========================================================================
+
+ROG-G635LW-Windows11-25H2-Installer v38
+
+Key fixes:
+- MyASUS Microsoft Store package (ID 9N7R5S6B0ZZH) is REQUIRED. The installer no longer silently skips MyASUS merely because STAGE 06/preparation was already completed.
+- The only authoritative hardware/driver/software inventory remains the one-time STAGE 06 baseline. MyASUS is attempted on each invocation until that baseline shows it already installed.
+- MyASUS uses the official Microsoft Store (msstore) source and exact Store package ID.
+- MyASUS Store installation retries up to 3 times, with a 180-second hard timeout per WinGet transaction. Failure keeps the ASUS package phase incomplete and preserves automatic resume.
+- If Microsoft Store is open, the installer closes the Store UI before Store registration repair or MyASUS deployment to avoid ERROR_PACKAGE_IN_USE.
+- If Microsoft Store is already registered for the current user, the installer does NOT re-register it. This avoids unnecessary AppX package-in-use failures.
+- Automatic wsreset.exe launching was removed because opening Store immediately before an AppX transaction can lock Microsoft.WindowsStore.
+- Store repair is only attempted when the current user is not already registered; no third-party Store package is downloaded.
+- Existing certificate-pinning retry for WinGet error 0x8A15005E is retained.
+- Existing 180-second timeout for Microsoft Store companion packages is retained.
+- Existing ASUS catalog DNS/HTTPS readiness retries are retained.
+- Existing automatic post-reboot resume and Y/N reboot deferral behavior are retained.
+- Version/branding corrected to v38.
+
+Important: Microsoft Store applications are installed in the logged-in interactive user context. Automatic SYSTEM resume does not attempt a user-scoped Store installation; the next normal interactive invocation resumes the required MyASUS step if it was not present in the STAGE 06 baseline.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v39.txt
+==========================================================================
+
+ROG-G635LW Windows 11 25H2 Installer v39
+
+Fixes in v39
+
+1. FIXED AUTOMATIC REBOOT RESUME FAILURE
+   v38 used:
+       Split-Path -LiteralPath $StableScript -Parent
+   PowerShell does not permit -LiteralPath and -Parent in the same Split-Path
+   parameter set. Microsoft documents -LiteralPath as its own parameter set,
+   while -Parent belongs to the normal -Path/Parent set.
+
+   v39 now uses:
+       [IO.Path]::GetDirectoryName($StableScript)
+   This removes the parameter-set ambiguity completely.
+
+2. STARTUP RESUME FALLBACK
+   If the persistent stable-copy refresh ever fails for another filesystem reason,
+   v39 registers the currently running script itself as the startup-resume fallback
+   instead of aborting before the scheduled resume task can be registered.
+
+3. AUTOMATIC REBOOT RESUME REMAINS ENABLED
+   The resume task is registered before the reboot and launches automatically at
+   Windows startup with the -Resume switch.
+
+4. NEW RESUME TASK NAME
+   ROG-G635LW-Installer-v39-Resume
+
+5. ONE-TIME HARDWARE BASELINE RETAINED
+   The no-timeout PnP scan and authoritative hardware/driver/software baseline
+   still occur only once per script invocation. A reboot creates a new invocation
+   and therefore one new baseline, as designed.
+
+No BIOS/firmware flashing behavior was added.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v40.txt
+==========================================================================
+
+ROG-G635LW Windows 11 25H2 Installer v40
+
+Changes from v39
+
+1. COMPLETE ASUS CATALOG RETENTION
+   - The ASUS catalog is now lossless after the existing exact-duplicate row filter.
+   - Logical/title/category deduplication is no longer applied.
+   - Every distinct ASUS G635LW Windows package candidate remains in the package list.
+   - This prevents the installer from reducing the catalog before the download/install phase.
+
+2. COMPLETE PRE-DOWNLOAD BUNDLE
+   - Before launching any ASUS full-package installer, v40 downloads/validates every
+     static package in the ASUS catalog and saves it under:
+       Desktop\ASUS Rog Strix Scar 16 2025 G635LW Drivers and Softwares\01 ASUS G635LW Official Packages
+   - Existing valid SHA-256 archives are reused.
+   - Stale revisions are retained and the current version/SHA-specific archive is downloaded.
+   - Microsoft Store entries are not treated as static files; MyASUS and Intel Graphics
+     Command Center continue to use the official Microsoft Store/WinGet source.
+   - A download failure is checkpointed and retried by the installation phase instead of
+     discarding the rest of the official catalog bundle.
+
+3. HARDWARE ASSOCIATION IS NOW AN INSTALL GATE, NOT A DOWNLOAD GATE
+   - Official ASUS packages for alternate hardware variants are still downloaded and retained
+     in the complete archive.
+   - A package whose hardware association does not match the STAGE 06 baseline is not forced
+     onto another device. It is marked NotApplicable after its official package has been archived.
+   - This preserves the complete vendor package bundle without risking installation of a driver
+     intended for a different controller/panel/device variant.
+
+4. INTEL WIRELESS OFFICIAL MANUFACTURER UTILITY
+   - Intel Driver & Support Assistant now uses Intel's direct official download endpoint
+     https://dsadata.intel.com/installer instead of scraping the Intel support page for a link.
+   - This avoids the 403 seen when the support/detect page was queried for the executable.
+   - ASUS OEM Intel Wireless packages remain authoritative for the G635LW when present in
+     the ASUS catalog; the generic Intel utility does not replace the ASUS OEM driver.
+
+5. RESUME / REBOOT / BASELINE POLICY RETAINED
+   - One unbounded PnP rescan and one authoritative hardware/driver/software baseline occur
+     per script invocation.
+   - No later hardware/driver/software re-detection is performed during that invocation.
+   - Automatic startup resume, Y/N reboot batching, persistent archive/checkpoints and SHA-aware
+     package reuse are retained.
+
+6. SAFETY
+   - BIOS/firmware packages remain excluded from unattended execution.
+   - 32-bit driver packages are not selected ahead of x64 packages on Windows 11 x64.
+   - Official packages are never replaced by third-party mirrors.
+   - No automatic overclock, undervolt, voltage, power-limit or fan-profile changes are applied.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v41.txt
+==========================================================================
+
+ROG G635LW Windows 11 25H2 Installer v41
+
+v41 adds a dedicated Microsoft Store companion-app stage while retaining v40's lossless ASUS package archive behavior.
+
+Microsoft Store companion applications:
+- MyASUS — Product ID 9N7R5S6B0ZZH
+- Intel Graphics Command Center — Product ID 9PLFNLNT3G5G
+- Realtek Audio Control / Realtek Codec Console — Product ID 9P2B8MCSVPLN
+- NVIDIA Control Panel — Product ID 9NF8H0H7WMLT
+- Dolby Access — Product ID 9N0866FS04W8
+- Armoury Crate — Product ID 9PM9DFQRDH3F
+- Aura Creator — Product ID 9MWZ3VLW5HBW
+
+The installer selects these only when the STAGE 06 hardware baseline or official ASUS G635LW catalog indicates the corresponding relationship, except MyASUS which is required for the ASUS notebook. It also discovers additional Microsoft Store Product IDs exposed inside the official ASUS catalog payload and attempts them through the same official msstore mechanism.
+
+All Store installations use WinGet with the Microsoft Store source and exact Product ID. Store packages are dynamic Store transactions, so they are not treated as ordinary static ASUS EXE/MSI archives and do not receive an ASUS SHA-256 archive entry.
+
+Store failures/timeouts are recoverable and do not block the ASUS driver/software archive or Windows Update fallback. The existing Store registration repair and temporary certificate-pinning retry behavior are retained.
+
+v40 behavior retained:
+- All distinct ASUS catalog packages are retained; no logical/title/category deduplication.
+- All static ASUS packages are pre-downloaded before the installation loop.
+- Hardware association is an installation gate, not a download gate.
+- Persistent per-package resume state and reboot batching remain enabled.
+- One authoritative STAGE 06 hardware/driver/software baseline remains in use.
+- BIOS/firmware packages remain excluded from unattended flashing.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v42.txt
+==========================================================================
+
+ROG G635LW Windows 11 25H2 Installer v42
+
+v42 changes from v41:
+- Fixes Microsoft Store/WinGet certificate-retry console noise. WinGet stderr is captured during Store transactions so a transient 0x8A15005E certificate diagnostic from the first attempt no longer appears as red PowerShell error text when the subsequent certificate-pinning retry succeeds.
+- WinGet stdout remains attached to the console so Store operation progress remains visible.
+- Store operations continue to return their real exit code to the installer.
+- The existing temporary Microsoft Store certificate-pinning retry and immediate restoration behavior is retained.
+- Corrects stale v26/v41 reset/banner wording to v42 where applicable.
+- No change to the ASUS 56-package lossless catalog, complete pre-download/archive policy, Microsoft Store companion-app coverage, hardware-association install gate, reboot/resume logic, x64 prioritization, BIOS exclusion, or Windows Update fallback policy.
+
+Note: Microsoft Store transactions are dynamic and are not copied into the static ASUS package archive as ordinary EXE/MSI files. They are installed through the official Microsoft Store source using exact package IDs.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Installerv57.txt
+==========================================================================
+
+ASUS ROG Strix SCAR 16 G635LW Windows 11 25H2 Installer v57
+
+Intel XTU installation assurance
+- Intel XTU 10.0.1.188 is explicitly retained as the official Intel executable installer for Core Ultra HX CPUs, including the detected Core Ultra 9 275HX.
+- Uses Intel's official download mirror URL and Intel's published SHA-256: 0118C89C059D348FF3D45E72F3CB88241EEEB7BE1FC27D284ACA8EECE5F1C7ED.
+- XTU is attempted in the normal manufacturer-utility stage after the ASUS platform/graphics package phase.
+- XTU is also attempted in the critical recovery checkpoint if the ASUS package phase stops before reaching the normal manufacturer-utility stage.
+- A persistent completion marker is no longer trusted by itself. The script verifies XTU installation through Windows uninstall registration and conservative filesystem checks; if XTU is missing, an old marker is invalidated and the official installer is run again.
+- The completion marker is created only after the installer reports success and XTU is independently verified as installed.
+- Empty installer arguments are used so the official XTU setup can run interactively when required; the installer process is waited on before the script advances.
+- The existing persistent download/archive path is retained so a previously downloaded XTU installer can be reused without an unnecessary re-download.
+
+General v57 maintenance
+- Installer identity, persistent state base, stable resume script name, and scheduled resume task are aligned to v57.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v64.txt
+==========================================================================
+
+ROG-G635LW Windows 11 25H2 Installer v64
+
+INTEL IPF / XTU ATTENDED INSTALLER UPDATE
+
+- Intel Innovation Platform Framework (IPF) is now a dedicated first-class checkpoint immediately before Intel XTU.
+- IPF is downloaded from the official ASUS G635LW Driver & Tools catalog.
+- ASUS IPF package SHA-256 is verified when ASUS exposes a SHA-256 value.
+- The supplied ASUS/Intel IPF installation wizard is launched as an ATTENDED installation.
+- No /S, /quiet, /qn or equivalent silent-install switch is supplied to the IPF wizard.
+- XTU is blocked if the required IPF checkpoint does not complete successfully.
+- Intel XTU now has a dedicated ASUS-catalog-aware installer checkpoint.
+- If ASUS publishes an XTU package for G635LW, the script automatically selects, downloads, verifies and runs that ASUS package's installation wizard as an ATTENDED installation.
+- If ASUS does not publish XTU for G635LW, the script uses Intel's official XTU 10.0.1.188 executable as the controlled fallback.
+- Intel XTU fallback SHA-256 remains 0118C89C059D348FF3D45E72F3CB88241EEEB7BE1FC27D284ACA8EECE5F1C7ED.
+- The Intel XTU fallback installer is also launched ATTENDED with no /S, /quiet or /qn switch.
+- IPF -> XTU ordering is enforced in both the normal manufacturer-utility stage and the recovery checkpoint.
+- Existing persistent completion markers are retained so already-completed installations are not unnecessarily relaunched.
+- No BIOS/firmware flashing behavior was added.
+
+Current official-source behavior:
+- ASUS G635LW catalog is authoritative for model-specific IPF and any future ASUS XTU package.
+- ASUS currently directs users to Intel for XTU downloads in its XTU support guidance; therefore Intel is the fallback when the G635LW catalog does not expose XTU.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v65.txt
+==========================================================================
+
+ROG G635LW Windows 11 25H2 Installer v65
+
+FIXED
+- Fixed the STAGE 07B terminating error:
+  Sort-PackagesForDependencyOrder : Cannot bind argument to parameter 'Packages' because it is null.
+- Root cause: PowerShell variable names are case-insensitive, so the v64 local variable $packages collided with the function parameter $Packages.
+- v65 uses a distinct local packageList/input flow and defensively skips dependency sorting when the catalog package list is empty.
+- Preserved the ASUS catalog IPF -> XTU attended-install dependency gate from v64.
+- IPF remains immediately before XTU; XTU remains blocked if IPF cannot be completed.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v66.txt
+==========================================================================
+
+ROG STRIX SCAR 16 G635LW - WINDOWS 11 25H2 INSTALLER v66
+
+v66 fixes the package-binding failure reported while entering STAGE 07B.
+
+FIXED
+- Removed the PowerShell case-insensitive parameter collision between $Packages and
+  the local $packages working variable in Install-AsusFullPackages.
+- Renamed the ASUS catalog input parameter to $CatalogPackages.
+- Renamed the dependency-sort input parameter to $InputPackages.
+- Updated the dependency-sort call to use -InputPackages explicitly.
+- An empty ASUS catalog now exits the ASUS package phase cleanly instead of reaching
+  a mandatory object[] binding failure.
+
+PRESERVED
+- ASUS G635LW official catalog remains the source for the ASUS package phase.
+- IPF remains explicitly prioritized before Intel XTU.
+- IPF/XTU attended installation workflow remains unchanged.
+- Post-STAGE-06 download/install architecture remains unchanged.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v67.txt
+==========================================================================
+
+ROG STRIX SCAR 16 G635LW - Windows 11 25H2 Installer v67
+
+Fix: ASUS package dependency-sort null binding
+
+- Fixed the remaining PowerShell case-insensitive parameter collision exposed by v66.
+- Sort-PackagesForDependencyOrder now uses InputPackages and permits an empty/null-safe input array.
+- Sort-PackagesByArchitecture also now uses InputPackages instead of Packages, eliminating the same collision class in its nested calls.
+- The ASUS package working list is explicitly materialized as an array before dependency sorting.
+- Dependency sorting is now called with an explicit array argument and logs the number of package objects returned.
+- Empty ASUS catalog results are handled without invoking a mandatory null-binding path.
+- Preserves the existing IPF -> Intel XTU ordering and attended installer behavior.
+- Preserves the official ASUS catalog source policy and Intel official fallback behavior.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v68.txt
+==========================================================================
+
+ROG G635LW Windows 11 25H2 Installer v68
+
+- Fixed the IPF checkpoint shown in v67: the G635LW ASUS catalog can return zero explicit IPF candidates, so v67 correctly stopped instead of downloading a package.
+- Added an ASUS-only compatible-catalog IPF resolver. It first uses the G635LW catalog; if ASUS omits IPF there, it queries compatible ASUS Intel 800-series catalogs and selects the live ASUS-hosted IPF package.
+- The selected ASUS package URL and SHA-256 come directly from the ASUS catalog response; no third-party mirror or generic Intel package is used for the IPF checkpoint.
+- IPF is downloaded, SHA-256 verified, extracted, and its setup wizard is launched ATTENDED with no silent switches.
+- XTU remains hard-gated behind successful IPF completion and immediately follows the IPF wizard.
+- Existing XTU ASUS-catalog preference and official Intel fallback are preserved.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v69.txt
+==========================================================================
+
+ROG G635LW Windows 11 25H2 Installer v69
+
+Fixes in v69
+- Fixed the Intel Innovation Platform Framework (IPF) attended-installer launch failure seen in v68.
+- ASUS IPF package download and SHA-256 verification were already completing successfully; the failure occurred because the script passed an empty ArgumentList array to Start-Process for the extracted EXE installer.
+- v69 now omits -ArgumentList entirely for EXE IPF installers, allowing the ASUS Platform Performance Package Installer wizard to launch normally and visibly.
+- MSI/CMD launchers retain their required explicit arguments.
+- No silent-install switches are supplied to the IPF EXE wizard.
+- IPF remains a hard prerequisite for XTU: XTU is not launched unless the IPF attended installation completes with exit code 0, 3010, or 1641.
+- Existing ASUS catalog/fallback selection, download progress, SHA-256 verification, persistent completion marker, and IPF -> XTU ordering are retained.
+
+Verified ASUS source information
+- ASUS currently publishes Intel Platform Performance Package installers in its official support catalogs. Current ASUS catalog results include v26.06.100.32 (97.05 MB) with SHA-256 F49DFF97587C3291D2EE00EF33411EAE4B614D26A9F8FA5B9679286658BBC2B2.
+- The v69 runtime continues to obtain the actual download URL and checksum from the ASUS catalog response rather than hard-coding a third-party URL.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v71.txt
+==========================================================================
+
+ROG-G635LW Windows 11 25H2 Installer v71
+
+Fixes:
+- Fixed the v70 PowerShell parser error at the XTU installation-state filesystem check.
+- Replaced the XTU executable discovery Where-Object scriptblock property expression with the PowerShell 5.1-compatible Where-Object -Property Name -Match form.
+- This prevents the "Missing property name after reference operator" parser failure before the installer can start.
+- Preserved the ASUS-first XTU package discovery, ASUS-hosted package download/verification, attended installation, and official Intel fallback behavior.
+- Preserved the ASUS IPF download, SHA-256 verification, and attended installer workflow.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v73.txt
+==========================================================================
+
+ROG-G635LW-Windows11-25H2-Installer v73
+
+FIXES
+1. Fixed the Intel XTU recovery-checkpoint failure where Test-IntelXTUInstalled was not available when Invoke-IntelXTUUtilityInstall called it.
+   - The verification function is now defined at top level before the recovery checkpoint can invoke the XTU installer.
+   - This removes the CommandNotFoundException shown by v72.
+2. Retained the v72 parser-safe XTU executable detection expression:
+   Where-Object { ([string]$_.Name) -like '*XTU*.exe' }
+3. Retained ASUS-first XTU resolution:
+   - G635LW ASUS catalog first.
+   - Compatible official ASUS Intel 800-series catalogs next.
+   - Legacy/pre-2024 ASUS XTU packages are rejected.
+   - If no current ASUS-hosted XTU package is exposed, use the current official Intel XTU fallback.
+4. Retained attended installation only: no /S, /quiet, /qn or equivalent silent switches are supplied.
+5. Retained the required dependency order: Intel IPF must complete before Intel XTU is attempted.
+
+CURRENT OFFICIAL INTEL XTU FALLBACK
+Version: 10.0.1.188
+File: XTUSetup_10.0.1.188.exe
+SHA-256: 0118C89C059D348FF3D45E72F3CB88241EEEB7BE1FC27D284ACA8EECE5F1C7ED
+Source: Intel official download page
+
+IMPORTANT
+v73 was source-inspected after the v72 failure and the reported missing-function condition was corrected. The script has not been executed on the user's Windows installation from this environment, so the actual ASUS/Intel download and attended wizard still need to be confirmed on the laptop.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v74.txt
+==========================================================================
+
+ROG-G635LW Windows 11 25H2 Installer v74
+
+Fixes based on the v73 run on the ASUS ROG Strix Scar 16 (G635LW):
+
+1. Fixed the XTU checkpoint abort shown as:
+   Cannot validate argument on parameter 'Level'. The argument 's' does not belong to the ValidateSet...
+   The logging helper no longer uses a terminating ValidateSet for its Level parameter. Unexpected
+   nested logging tokens are normalized to INFO instead of aborting the XTU installer checkpoint.
+
+2. XTU installation detection now runs BEFORE ASUS catalog resolution. An already-installed XTU therefore
+   cannot be blocked by an ASUS catalog query.
+
+3. If XTU is not installed, the script explicitly logs that it is resolving an official ASUS-hosted package.
+   G635LW is checked first, followed by compatible official ASUS catalogs.
+
+4. If no current compatible ASUS-hosted XTU package is exposed, the script falls back to Intel's official
+   XTU 10.0.1.188 package. Intel currently lists XTU 10.0.1.188 for Windows 11 25H2 and publishes SHA-256
+   0118C89C059D348FF3D45E72F3CB88241EEEB7BE1FC27D284ACA8EECE5F1C7ED.
+
+5. IPF remains a hard prerequisite and remains immediately before XTU. No XTU launch occurs if IPF fails.
+
+6. XTU remains an attended installation: no /S, /quiet, /qn, or equivalent silent-install switches are supplied.
+
+Compatibility: Windows PowerShell 5.1 / Windows 11 25H2.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v75.txt
+==========================================================================
+
+ROG Strix SCAR 16 (2025) G635LW - Windows 11 25H2 Installer v75
+
+v75 - XTU LiteralPath/null-path hardening
+
+- Fixed the v74 XTU recovery-checkpoint failure:
+  "Cannot bind argument to parameter 'LiteralPath' because it is null."
+- Hardened Find-ExistingArchiveFile so it always resolves a concrete archive root before any
+  Test-Path or Get-ChildItem call using -LiteralPath.
+- Added an XTU checkpoint initialization guard that establishes script:DownloadRoot before the
+  generic download engine is entered, including package-failure/resume execution paths.
+- The XTU sequence remains:
+    1. Verify whether XTU is already installed.
+    2. Search the G635LW ASUS catalog for a current ASUS-hosted XTU package.
+    3. Search the defined compatible official ASUS catalogs for a current ASUS-hosted package.
+    4. If no suitable ASUS package is exposed, use Intel's official XTU 10.0.1.188 package.
+- ASUS XTU packages remain restricted to modern/current packages; legacy ASUS XTU packages are
+  not substituted into the Windows 11 25H2 Arrow Lake-HX workflow.
+- Intel fallback remains the official Intel executable, SHA-256 verified before execution.
+- XTU installation remains attended; no silent installation switches are supplied.
+- No third-party XTU mirrors are used.
+
+This version has been source-inspected in the build environment. It has not been executed on the
+user's Windows installation; the next run is required to verify the complete ASUS/Intel XTU path.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v76.txt
+==========================================================================
+
+ROG G635LW Windows 11 25H2 Installer v76
+
+XTU fallback repair
+===================
+
+- Fixed the v75 Intel XTU fallback failure:
+  "Cannot bind argument to parameter 'LiteralPath' because it is null."
+- The official Intel XTU fallback is now self-contained and no longer routes its
+  download through the generic archive downloader during the recovery checkpoint.
+- The XTU destination and parent directory are explicitly validated before any
+  filesystem operation.
+- Direct download is attempted from Intel's official download CDN.
+- curl.exe is used as a second official-Intel-only fallback when available.
+- If Intel requires license acceptance/session establishment, the official Intel
+  download page is opened and the script waits for the exact XTUSetup_10.0.1.188.exe.
+- Only the exact Intel-published SHA-256 is accepted before the executable can run.
+- No third-party XTU source is used.
+- XTU installation remains attended; no silent installation switches are supplied.
+- ASUS remains the preferred XTU source. The G635LW and compatible official ASUS
+  catalogs are searched first; the Intel fallback is used only when no current
+  compatible ASUS-hosted XTU package is exposed.
+- IPF remains a hard prerequisite immediately before XTU.
+
+Official Intel package
+======================
+Version: 10.0.1.188
+Filename: XTUSetup_10.0.1.188.exe
+SHA-256: 0118C89C059D348FF3D45E72F3CB88241EEEB7BE1FC27D284ACA8EECE5F1C7ED
+
+Testing note
+============
+v76 was source-inspected and the generated artifacts were SHA-256 hashed in the
+build environment. It has not been executed on the user's Windows installation.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v77.txt
+==========================================================================
+
+ROG G635LW Windows 11 25H2 Installer v77
+
+- Fixes the v76 PowerShell parser failure in the Intel XTU fallback.
+- Rebuilt Invoke-IntelXTUDownload using simple Windows PowerShell 5.1-compatible syntax.
+- Removes the generic ASUS archive downloader from the Intel XTU fallback path.
+- Ensures the XTU destination and parent directory are concrete before any LiteralPath use.
+- Tries the official Intel CDN, then curl.exe against the same official Intel URL.
+- Accepts an XTU executable only when its SHA-256 matches Intel's published 10.0.1.188 hash.
+- Keeps an official Intel browser/license fallback if Intel requires interactive license acceptance.
+- XTU installation remains attended with no silent-install switches.
+- ASUS-first XTU resolution and compatible official ASUS catalog searches remain unchanged.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v78.txt
+==========================================================================
+
+ROG-G635LW Windows 11 25H2 Installer v78
+
+XTU parser and fallback correction.
+
+- Replaced the v77 Intel XTU downloader block that produced Windows PowerShell 5.1 parser errors.
+- Removed WebClient.Headers[] assignment and the curl argument-array block from the XTU path.
+- Uses a simple official Intel WebClient download, followed by Invoke-WebRequest against the same official Intel URL.
+- Requires exact Intel XTUSetup_10.0.1.188.exe SHA-256 verification before installation.
+- Retains official Intel browser/license fallback; no third-party XTU source is accepted.
+- ASUS G635LW and compatible official ASUS XTU catalog resolution remains first.
+- XTU installation remains attended.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v79.txt
+==========================================================================
+
+ROG G635LW Windows 11 25H2 Installer v79
+
+XTU checkpoint fix:
+- v78 reached the Intel XTU fallback but failed because the Invoke-IntelXTUUtilityInstall Root argument was empty.
+- v79 no longer depends on the caller-supplied Root argument for the XTU destination.
+- The XTU archive root is independently resolved from script:DownloadRoot, DownloadRoot, USERPROFILE, then Desktop.
+- The archive and Intel XTU directories are explicitly created before any download operation.
+- The XTU checkpoint logs the resolved absolute directory before ASUS/Intel package resolution continues.
+- The ASUS-first XTU catalog search is retained.
+- Compatible official ASUS catalog fallback is retained.
+- Official Intel XTU 10.0.1.188 remains the fallback when no current ASUS-hosted XTU package is exposed.
+- XTU installer remains attended and is SHA-256 verified before launch.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v80-Reboot5-Startup-Log.txt
+==========================================================================
+
+ROG-G635LW Windows 11 25H2 Installer v80 - Reboot5 + Startup + powershellv80.log
+
+Change in this revision:
+- The v80 script now creates/uses powershellv80.log in the same directory as the v80 PowerShell script that is currently executing ($PSScriptRoot).
+- The log is persistent and appended to across normal runs and -Resume runs after reboot.
+- Windows PowerShell Start-Transcript is used with -LiteralPath, -Append, -Force and -IncludeInvocationHeader so console output, prompts, Write-Host output and installer-stage messages are captured.
+- The existing structured Write-Log output is captured by the transcript without duplicate Add-Content writes.
+- If Start-Transcript cannot be started, the script attempts a direct Add-Content fallback to the same powershellv80.log path.
+- The reboot-5 checkpoint and Startup-folder resume behavior are otherwise unchanged.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v80-Reboot5-Startup.txt
+==========================================================================
+
+ROG Strix SCAR 16 G635LW - Windows 11 25H2 Installer v80
+Reboot-5 Startup Resume Revision
+
+Changes in this revision:
+- At each five-successful-installation Y/N reboot checkpoint, selecting Y now creates a one-shot .BAT file in the target user's Windows Startup folder before Windows is restarted.
+- Startup batch location:
+  C:\Users\<target-user>\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\ROG-G635LW-Installer-v80-Resume.bat
+- The batch launches Windows PowerShell elevated with the RunAs verb and resumes the v80 installer with -Resume.
+- The batch self-deletes after successfully starting the elevated PowerShell process, so it does not run on every future login.
+- The v80 stable resume copy is now explicitly named ROG-G635LW-Windows11-25H2-Installer-v80.ps1 instead of the stale v70 filename.
+- If the stable v80 copy does not yet exist, the currently running v80 script is copied into the persistent ProgramData installer directory before the Startup batch is written.
+- Automatic reboot paths for ASUS package reboot-required (3010) and Windows Update reboot-required checkpoints also prepare the same one-shot Startup batch before restarting.
+- -Reset now removes the one-shot Startup batch if it exists.
+- The existing five-successful-installation counter remains unchanged: successful top-level driver/software/package installation events only; downloads, skipped items, failures and already-satisfied detections do not consume a slot.
+- The Y/N dialog remains interactive for a manually launched v80 script.
+- Windows startup/login uses the Startup batch so the resumed PowerShell process is explicitly elevated with UAC RunAs.
+
+Important:
+- The batch is created only when the script reaches a reboot checkpoint. It is not installed permanently in Startup.
+- The next interactive user login is required for the Startup-folder batch to run.
+- The batch uses only the v80 script stored in the installer's ProgramData persistence directory; it does not depend on the Desktop copy remaining in place.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v80-Reboot5.txt
+==========================================================================
+
+ROG-G635LW-Windows11-25H2-Installer v80 - Five-Installation Reboot Checkpoint Revision
+
+Change requested:
+- After every five successful top-level driver/software/package installation events, the installer now presents an explicit Y/N reboot dialog.
+
+Behavior:
+- Downloads, skipped packages, failed/cancelled installers, and already-satisfied hardware gates do not consume an installation slot.
+- Successful ASUS EXE/MSI/full-package installation events count as one installation event.
+- Successfully completed Microsoft Store companion installation events also count as one installation event.
+- Exit code 3010 and other pending-reboot conditions are preserved, but do not force an immediate reboot before the five-install checkpoint.
+- Exit code 1641 remains special: if an installer itself has already initiated a reboot, no second reboot prompt is attempted.
+- Y saves the persistent package checkpoint and reboots Windows.
+- N does not stop the sequential installation workflow. It saves the checkpoint, resets the five-install counter, and continues with the next package; another Y/N prompt appears after the next five successful installation events.
+- The existing startup resume task/checkpoint behavior is preserved.
+- The threshold is 5 (not 6 as in the previous v80 batched-reboot logic).
+
+Compatibility:
+- Designed for Windows PowerShell 5.1.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v80-StartupPathFix.txt
+==========================================================================
+
+ROG G635LW Windows 11 25H2 Installer v80 - Startup Path Fix
+
+Fixes the interactive "Join-Path" ChildPath prompt observed immediately after the v80
+transcript starts. The initial v80 path initialization now uses System.IO.Path::Combine
+instead of Join-Path for ProgramData, transcript log, stable script, target user, startup
+batch, and download-root paths. This prevents an interactive Join-Path parameter prompt
+from occurring before the MAIN section begins.
+
+The requested powershellv80.log behavior remains unchanged: the transcript is written
+beside the currently executing v80 .ps1 file.
+
+The five-installation reboot checkpoint and one-shot Startup-folder resume behavior are
+retained.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v80.txt
+==========================================================================
+
+ROG-G635LW Windows 11 25H2 Installer v80
+
+XTU fallback destination hardening release.
+
+Changes from v79:
+- Fixed the Intel XTU fallback path that still reported "Intel XTU destination was empty" after the archive directory had been resolved.
+- The XTU destination is now constructed explicitly from the resolved archive directory and passed as a concrete string.
+- Invoke-IntelXTUDownload now self-resolves a deterministic destination if a caller ever supplies an empty value.
+- Added explicit destination logging before every Intel XTU download attempt.
+- Kept ASUS G635LW catalog and compatible official ASUS catalog resolution ahead of the Intel fallback.
+- Kept the Intel-hosted XTU 10.0.1.188 fallback and published SHA-256 verification.
+- Kept official Intel browser/license fallback when Intel rejects unattended direct download requests.
+- Kept attended XTU installation with no silent-install switches.
+- Windows PowerShell 5.1 compatible syntax used in the revised XTU functions.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v81.txt
+==========================================================================
+
+ROG-G635LW-Windows11-25H2-Installer v81
+
+Changes from v80
+================
+
+1. LATEST DRIVER VERSION ONLY
+- The ASUS catalog is now split into driver and non-driver candidates after hardware detection.
+- For each logical ASUS driver target, only the newest applicable driver candidate is retained for installation.
+- Older driver revisions are suppressed before the sequential download/install loop, so they are not downloaded or installed.
+- ASUS download URLs are deliberately excluded from the version-neutral logical driver key because ASUS commonly changes the filename/URL between releases.
+- Native x64 is preferred over ARM64, x86 and neutral/unspecified variants when multiple architecture variants exist for the same logical driver target.
+- Version is the primary selection criterion within the preferred architecture; ASUS release date breaks ties or unavailable-version cases.
+- Non-driver companion software/Store entries remain separately eligible and are not incorrectly treated as historical driver revisions.
+
+2. UNLIMITED AUTOMATIC REBOOTS
+- The five-install checkpoint remains the automatic reboot interval.
+- After every 5 successful top-level driver/software/package installation events, the script saves its persistent checkpoint, creates the one-shot Startup resume batch, and automatically reboots Windows.
+- There is NO fixed maximum number of automatic reboots.
+- The script may reboot as many times as required to complete the sequential ASUS package phase and subsequent Windows Update passes.
+- A reboot is never initiated unless the Startup resume batch was successfully created, so a failed resume registration does not risk losing the checkpoint.
+- Installer exit code 1641 remains special: if the installer itself has already initiated the reboot, the script does not issue a second reboot.
+- Reboots required directly by ASUS packages and Windows Update also have no hard reboot-count ceiling.
+
+3. RESUME GENERATION
+- v81 uses its own persistent stable script/state/log generation.
+- A legacy v80 Startup resume batch is removed when v81 starts so two installer generations cannot both relaunch after the same reboot.
+- The persistent download archive and package checkpoints remain in the existing ASUS-G635LW-Installer-Content location.
+
+4. PRESERVED BEHAVIOR
+- Windows PowerShell 5.1 compatibility is retained.
+- ASUS official catalog/source preference is retained.
+- BIOS/firmware packages remain excluded from unattended execution.
+- Sequential package behavior is retained: the next package is not downloaded until the current package has completed installation and same-package executable/settings gates.
+- Intel IPF and Intel XTU ASUS-first logic is retained.
+- The existing attended installer behavior and persistent package ledger are retained.
+
+Source note
+===========
+ASUS currently exposes G635LW Windows driver packages through its official G635LW support/download page. The installer continues to query the ASUS catalog dynamically rather than hard-coding today's package versions.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ROG-G635LW-Windows11-25H2-Installer-v82.txt
+==========================================================================
+
+ROG-G635LW-Windows11-25H2-Installer v82 - Global Download-First Installation Architecture
+
+Changes requested:
+- The installer is now divided into two global phases after STAGE 06 hardware detection.
+- PHASE A: download, verify and archive ALL selected PnP/driver/package/installer/software/utility content into its respective directory before any installer is allowed to execute.
+- PHASE B: install only the archived local content, serially, in dependency order.
+- A persistent ALL-CONTENT-DOWNLOAD-COMPLETE.json marker is written only after the global content-download phase succeeds.
+- During installation, the ASUS package resume state continues to flag packages as ReadyToInstall/Installed/Installed(Detected)/NotApplicable and preserves the exact installation checkpoint across reboots.
+- Once the global download marker exists, missing content is never silently downloaded during the installation phase; the affected item is blocked/deferred instead.
+- Microsoft Store companions are downloaded with WinGet into the archive during the download phase where the Store exposes a downloadable MSIX/AppX payload, then installed from the local payload during the installation phase.
+- MyASUS follows the same download-first rule.
+- Official manufacturer driver-store archives, device-associated utilities, Intel IPF, Intel XTU, HWiNFO, CPU-Z, NVIDIA Broadcast/SDK content and final ASUS Armoury Crate/Aura content are prepared in download-only mode before installation.
+- Windows Update is also given a download-only preparation pass before the installation phase; its payload is retained in the Windows Update cache and a manifest is written.
+- Existing v81 latest-driver-only selection remains active: only the newest logical ASUS driver candidate is selected; older driver revisions are not downloaded or installed.
+- Existing five-successful-installation reboot checkpoint remains active.
+- There is NO maximum reboot count. The installer may reboot as many times as required, saving state and re-arming automatic resume each time.
+- BIOS/firmware flashing remains excluded from unattended execution.
+- Windows PowerShell 5.1 compatibility is retained.
+
+Important behavior:
+- No ASUS/vendor installer is launched while the global content-download phase is active.
+- No serial package download/install alternation remains for the selected content set.
+- Installation consumes the already downloaded local archive sequentially and records completion as each item succeeds.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ASUS-Win11-Portable-Online-Installer-v83.txt
+==========================================================================
+
+ASUS-Win11-Portable-Online-Installer v83
+
+Change requested:
+- Windows Update is completely excluded from the portable online installer.
+- Removed Windows Update Agent service registration/preparation.
+- Removed Windows Update package/driver searching, downloading, manifests and installation.
+- Removed the Windows Update download-only preparation call from the global content-download phase.
+- Removed the post-detection Windows Update pass loop.
+- The installer no longer uses Windows Update as a fallback source.
+
+Preserved from v82:
+- Latest applicable ASUS driver/package selection.
+- Global download-first workflow for the installer content.
+- Serial installation from downloaded content after the global download phase completes.
+- Persistent installation/checkpoint state and resume behavior.
+- Five successful installation-event reboot checkpoints.
+- Unlimited automatic reboot count; no hard four-reboot ceiling.
+- ASUS/manufacturer package and utility workflow.
+- BIOS/firmware flashing remains excluded from unattended execution.
+
+Compatibility:
+- Windows PowerShell 5.1.
+
+
+
+==========================================================================
+SOURCE FILE: CHANGELOG-ASUS-Win11-Portable-Online-Installer-v84.txt (prior v84 record)
+==========================================================================
+
+ASUS ROG Strix SCAR 16 G635LW - Windows 11 25H2 Installer v84
+CORRECTED BUILD / FUNCTION-RESTORATION CHANGELOG
+
+Purpose
+-------
+This corrected v84 build addresses the runtime failure reported when the previous v84
+script reached:
+
+    Export-DownloadManifest -Packages $packages
+
+The previous release had a large block of required package/discovery/install helper
+functions omitted from the script. PowerShell therefore reported:
+
+    The term 'Export-DownloadManifest' is not recognized...
+
+This build restores the complete non-Windows-Update helper-function block from the
+intact v82 implementation into the v84 script.
+
+Corrections
+-----------
+1. Restored Export-DownloadManifest and all other omitted ASUS package workflow
+   functions required by Install-AsusFullPackages and the global download phase.
+2. Restored the ASUS catalog discovery, URL normalization, package download,
+   archive/resume, dependency ordering, package association, hardware matching,
+   installed-state reconciliation, five-install reboot gate, Store companion,
+   Intel Graphics Command Center gate, and ASUS full-package installation helpers.
+3. Restored Install-AsusFullPackages itself.
+4. Windows Update functions remain deliberately excluded. The following legacy
+   Windows Update functions were NOT restored:
+      Enable-MicrosoftUpdateService
+      Prepare-UpdateServices
+      Get-UpdateCategories
+      Get-WindowsUpdateDriverMetadata
+      Test-WindowsUpdateDriverAlreadySatisfied
+      Test-IsNvidiaWindowsUpdateDriver
+      Install-WindowsUpdatePass
+5. Retained v84's persistent Windows Update disabling function and its invocation.
+6. Retained the v84 logging fix that avoids Start-Transcript competing with the
+   installer-owned powershellv84.log file.
+7. Retained the v84 filename:
+      ASUS-Win11-Portable-Online-Installer_v84.ps1
+8. Updated direct user-facing v83 installer labels to v84 where applicable.
+9. The user's supplied Install.txt is included unchanged.
+
+Validation
+----------
+- Required non-Windows-Update functions compared against the intact v82 baseline:
+  all restored.
+- Duplicate function definitions: none.
+- Windows Update legacy function definitions: none.
+- Total PowerShell function definitions in corrected v84: 111.
+- The previous runtime-missing function Export-DownloadManifest is now defined
+  before the main execution path.
+- Install-AsusFullPackages is now defined before the main execution path.
+- The archive was created and tested for ZIP integrity.
+
+Important limitation
+--------------------
+This environment does not contain Windows PowerShell 5.1 or PowerShell 7, so an
+actual Microsoft PowerShell parser/execution test on Windows could not be performed
+here. Structural/function validation was performed against the source files. The
+uploaded v84 file supplied by the user was used as the base, preserving its current
+contents and the user's amendment.
+
+Installation
+------------
+Use the supplied Install.txt. It remains named exactly Install.txt and continues to
+reference ASUS-Win11-Portable-Online-Installer_v84.ps1.
+
+v84 repair update (Fixed3)
+- Removed the misplaced top-level Install-AsusFullPackages tail that invoked Export-DownloadManifest before the function was defined.
+- Removed the duplicate leading UTF-8 BOM at the start of the PowerShell source.
+- The manifest call remains inside the complete ASUS package installer function.
+- Install.txt is unchanged.
+- Static structural review only; native Windows PowerShell execution/parser validation has not been performed in this environment.
+
+v84 NVIDIA Broadcast SDK generation-matching update (2026-10-13)
+- Added NVIDIA GPU model detection using Win32_VideoController before selecting Broadcast SDK redistributables.
+- AR, Audio Effects, and Video Effects packages are now selected from NVIDIA's official Broadcast SDK resources page for the detected RTX 20, RTX 30, RTX 40, or RTX 50 generation.
+- The selected package links must be found on NVIDIA's official resource page and match the detected generation. The script will skip a package if it cannot verify a matching official link; it will not silently fall back to RTX 50 / Blackwell packages.
+- Updated both the main utility stage and the critical recovery checkpoint to use the same generation-aware selector.
+- NVIDIA Broadcast application itself remains the universal official app; generation matching applies to the AR / Audio Effects / Video Effects SDK redistributables.
+- Validation note: package contents and static references were checked in this environment; a Windows PowerShell execution test was not available here.
+
+
+==========================================================================
+
+v84 cumulative update (2026-10-13) - latest-driver selection and Intel graphics
+
+- Refined latest-version selection for ASUS software/utility packages as well as
+  driver packages. Duplicate logical package entries are compared by version so
+  older revisions should not be downloaded alongside the newest applicable one.
+- Specifically addressed ASUS System Control Interface v3, where the reported run
+  downloaded v3.1.72.0 and v3.1.70.0, and Virtual Assistant, where it downloaded
+  v4.1.1 and v3.5.7. The selector is intended to retain only the newest applicable
+  candidate for each logical package.
+- Corrected Intel onboard graphics matching so the ASUS Graphic_ROG_Intel / Intel
+  graphics-driver candidate is not mistaken for Intel Graphics Command Center or
+  omitted from the driver selection.
+- Added Intel Graphics Software as a distinct Microsoft Store companion package
+  (Product ID 9P8K5G2MWW6Z); this is separate from Intel Graphics Command Center.
+- Updated this cumulative changelog with the above changes. This file is intended
+  to be carried forward and appended to in subsequent installer packages rather
+  than replaced with a version-only changelog.
+- Package naming update: the launch script is now Win11-ASUS-Phreak-Helper.ps1.
+  Install.txt references that filename and searches for *Phreak-Helper* so the
+  renamed script is listed by the supplied instructions. The persistent stable
+  script/resume copy uses the same filename.
+- Validation note: ZIP integrity and file hashes were checked. No native Windows
+  PowerShell parser/runtime execution was available in this environment.
+
+
+==========================================================================
+
+v84 cumulative hotfix (2026-10-13) - WinGet download-directory quoting
+
+- Investigated the reported global content-download failure in the user's run log.
+  Microsoft Store payload downloads returned WinGet exit code -1978335230
+  (0x8A150002, invalid command-line arguments), including MyASUS.
+- Quoted the download-directory argument passed through Start-Process -ArgumentList
+  for Microsoft Store payloads and WinGet-hosted packages. Start-Process combines an
+  argument array into a command-line string, so destination paths containing spaces
+  must be quoted as part of that string.
+- Applied the correction to MyASUS, the global Microsoft Store companion download
+  loop, the generic WinGet utility download, and the NVIDIA Broadcast WinGet fallback.
+- The global download-complete gate remains intact: the installation phase still
+  cannot start until the selected content-download phase succeeds. This preserves
+  the user's download-first, install-second requirement.
+- Validation: checked the patched call sites, confirmed the expected four-file ZIP
+  contents, and verified the archive and SHA-256 manifest. Native Windows PowerShell
+  parsing/execution could not be run in this environment; the next Windows run is
+  needed to confirm WinGet accepts the quoted paths.
+
+
+v84 Microsoft Store authentication-flow correction (2026-10-13)
+- Removed Microsoft Store `winget download --source msstore` calls from the global download-only phase, including the MyASUS payload path and ASUS catalog Store companion loop.
+- The official WinGet download command requests Microsoft Entra ID authentication to retrieve an offline Store package license; that authentication flow is separate from a user's existing Microsoft Store UI sign-in and can display a second login prompt.
+- Store apps without a previously archived local payload are now deferred to the installation phase and installed using the existing `winget install --source msstore` helper in the current interactive user context.
+- MyASUS no longer makes the global content-download marker depend on an Entra-authenticated offline Store package download; its required installation remains in the final ASUS software stage before Armoury Crate/Aura.
+- ASUS catalog Store package handling now attempts the normal Store install transaction after the global completion marker instead of blocking solely because no offline Store payload exists.
+- The download-first/install-second rule remains in force for regular ASUS/vendor packages. Microsoft Store applications are explicitly treated as an exception because WinGet's offline Store download flow requires separate Entra licensing authentication; Store apps are installed only after the global download phase.
+- Existing signed-in Store account is not programmatically inspected or re-authenticated. The script will not launch `winget download --source msstore`; a Store install can still fail if Windows/WinGet itself requires account, licensing, or Store service remediation.
+- Validation note: static source checks and ZIP integrity checks only; native Windows PowerShell runtime validation was unavailable in this environment.
+
+
+v84 live installed-version and downgrade-protection update (2026-10-13)
+- Added live installed driver/software inventory refreshes at each ASUS package boundary and again immediately before launching the selected ASUS package installer.
+- The final ASUS package gate rechecks the current installed component version after download/extraction, so a same-version or newer installed component suppresses installer execution even if the package was selected earlier in the run.
+- Extended fail-closed handling for matching driver families when the catalog exposes neither a comparable target version nor a release date: the package is retained in the archive, but an unverified driver overwrite is blocked.
+- Manufacturer driver-store candidates now refresh the live signed-driver inventory before their version/date gate. When a matching device driver exists but the manufacturer candidate exposes no comparable version/date, the driver installation is blocked rather than guessed safe.
+- Existing version parsing, hardware association, persistent resume/checkpoint state, download-first/install-second workflow, Store authentication correction, and four-file ZIP structure are retained.
+- Scope note: this gate uses installed Windows driver/software inventories and vendor catalog version/date metadata. Installers that do not expose a comparable target version cannot be proven newer; where a matching component is detected, the new fail-closed rules block the applicable ASUS/manufacturer driver path. Microsoft Store packages remain managed through WinGet's normal Store install path.
+- Validation note: static source checks, archive integrity and SHA-256 manifest checks only. Native Windows PowerShell parser/runtime execution was unavailable in this environment.
+
+
+v84 Intel VPU anti-repeat correction (2026-10-13)
+- Expanded Intel VPU component-family identification to recognize Intel AI Boost, Neural Processing Unit, NPU, and Vision Processing device names in addition to names explicitly containing VPU.
+- Tightened installed-driver reconciliation for recognized component families: generic title-token overlap can no longer allow an unrelated driver from the same vendor (for example, Intel Smart Sound Technology) to satisfy a TXT or VPU package version gate. Known families now require matching hardware identity or a matching component-family classification before installed version/date comparison.
+- This specifically addresses the reported run where the ASUS Intel VPU Driver installer launched despite the VPU driver already being installed. The live inventory should now identify common Intel AI Boost/NPU naming and block same-version or newer package execution when the installed driver version/date comparison confirms it.
+- Validation: static matching-path checks, four-file ZIP integrity, and checksum manifest verification. Native Windows PowerShell runtime testing was not available in this environment.
+
+v84 Intel VPU live-PnP anti-repeat correction (2026-10-13)
+- Investigated the supplied powershellv84 log: the live inventory listed Intel(R) AI Boost, but the package-level anti-repeat check did not report a matching installed VPU driver and proceeded to launch the ASUS Intel VPU Driver EXE.
+- Added an independent Get-PnpDevice/Get-PnpDeviceProperty query for present Intel AI Boost/VPU/NPU devices, reading DEVPKEY_Device_DriverVersion, driver date, INF path, and device status where available.
+- The ASUS Intel VPU package is now blocked when a live VPU driver version is equal to or newer than the candidate version.
+- If a live VPU device reports Status=OK but Windows does not expose a comparable driver version through the PnP property query, the script fails closed and suppresses the installer rather than guessing that the package is safe to overwrite.
+- A clearly older, comparable installed VPU driver remains eligible for an upgrade to the selected newer ASUS package.
+- This protection is used by both the package-boundary check and the final pre-launch version gate because both call Test-InstalledComponentSatisfiesAsusPackage.
+- Validation: source-level structural checks, archive integrity, four-file layout, checksum manifest, and byte-for-byte Install.txt preservation. Native Windows PowerShell runtime validation was unavailable.
+
+v84 installed-driver cross-family matching correction (2026-10-13)
+- The supplied runtime log also showed Intel Smart Sound Technology being reported as the matching installed driver for Intel Dynamic Tuning, GNA, IRST/VMD, and TXT package gates. That is not a safe component identity match.
+- Tightened the known-family version matcher: a known driver family must match the installed device family; a broad/shared hardware ID can only be used as fallback when the installed record has no identifiable component family. This prevents a known Intel Smart Sound device from satisfying a different known Intel driver family merely through shared IDs or generic words.
+- Existing exact hardware-ID checks remain available for installed records whose component family cannot be identified.
+- Native Windows PowerShell runtime validation remains unavailable; test the revised live log before trusting package selection.
+
+v84 Intel Chipset INF bundle anti-repeat correction (2026-10-13)
+- Investigated the supplied powershellv84 (3).log: Intel VPU correctly skipped because the installed Intel(R) AI Boost driver 32.0.100.5540 is newer than ASUS candidate 32.0.100.4512, but the script still launched Intel(R) Chipset Software 10.1.51.8.
+- Added a dedicated anti-repeat gate for the Intel chipset INF bundle, which is not represented as one conventional device family in the live PnP inventory.
+- The gate checks the installed Intel Chipset Device Software product version and Intel chipset/system-device driver records, while excluding known separate families such as IPF, VPU/NPU, graphics, MEI, Serial IO, Dynamic Tuning, Smart Sound, GNA, and storage.
+- If a matching installed chipset/system-device driver is at the same or a newer comparable version, the package is marked satisfied and the setup EXE is not launched.
+- If matching chipset/system-device records exist but a version cannot be compared, the gate fails closed and suppresses the bundle rather than risk overwriting an unknown same/newer component.
+- A candidate remains eligible only when the matching records are comparable and older, or no matching chipset record/product is found.
+- The downloaded package is still preserved; the gate changes execution eligibility, not the download archive.
+- Validation: static insertion-point and structure checks, exact four-file ZIP layout, ZIP integrity, checksum manifest, and byte-for-byte preservation of Install.txt. Native Windows PowerShell runtime testing was unavailable.
+
+v84 Intel Graphics Command Center non-launch correction (2026-10-13)
+- Reviewed powershellv84.log and the supplied screenshot. The installed Intel Graphics Command Center package was detected, but the script then launched IGCC.exe and waited indefinitely for the user to close the window.
+- Changed Invoke-IntelGraphicsCommandCenterGate to a presence/verification gate rather than an interactive settings gate.
+- If Intel Graphics Command Center is already installed, the script logs the detected AppX version when available, skips launching the GUI, and continues to the next package.
+- If it is not installed, the script uses the existing Microsoft Store installation helper, verifies the package's presence afterward, and does not launch the GUI.
+- This gate does not itself compare an online Store release against the installed AppX version or perform a Store upgrade; it prevents unnecessary relaunching and blocking. Driver/software version gates elsewhere remain responsible for deciding whether a newer package should be installed.
+- The package loop no longer requires the user to open and close Intel Graphics Command Center merely to proceed.
+- Validation: static function replacement checks, exact four-file ZIP layout, ZIP integrity, checksum manifest, and byte-for-byte preservation of Install.txt. Native Windows PowerShell runtime testing was unavailable.
+
+v84 Intel Graphics Command Center caller-path correction (2026-10-13)
+- Review of the post-reboot screenshots showed that the prior patch changed Invoke-IntelGraphicsCommandCenterGate, but the actual package workflow still called the generic Invoke-InteractiveStoreApp function, which continued launching IGCC.exe and waiting indefinitely.
+- Added an explicit Intel Graphics Command Center early-return branch to Invoke-InteractiveStoreApp. When IGCC is already registered, it logs the installed AppX version when available, returns success, and never launches IGCC.exe or opens AppsFolder for that app.
+- If IGCC is not found in the current-user AppX inventory, the interactive gate still returns without launching a UI or hanging the package loop; Store installation/verification remains the responsibility of the Store package transaction.
+- This is a launch-blocking correction, not proof of an IGCC update. The current workflow reports the installed AppX version but does not yet query the Microsoft Store for a newer version and force an upgrade. The Intel graphics driver remains separately version-gated against the installed signed-driver inventory.
+- Validation: static check confirms the Intel Graphics Command Center branch returns before manifest executable, known-executable, and Start-menu launch paths; four-file ZIP layout, ZIP integrity, checksum manifest, and byte-for-byte Install.txt preservation verified. Native Windows PowerShell runtime testing was unavailable.

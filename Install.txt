@@ -3,8 +3,8 @@
 
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-Set-Location [Environment]::GetFolderPath("Desktop")
-Get-ChildItem -File -Filter "*Installer-v45.ps1"
+Set-Location $env:USERPROFILE\Desktop
+Get-ChildItem -File -Filter "*Installerv80.ps1"
 
-& ".\ROG-G635LW-Windows11-25H2-Installer-v45.ps1"
+& ".\ASUS-G635LW-Installerv80.ps1"
 
