@@ -1,10 +1,16 @@
-"Copy the downloaded .ps1 file to the Desktop. Then type 'powershell' in the windows searchbar and then 'right-click' 'run as Administrator'. Then copy and paste, the following:
+"Copy the downloaded *.ps1 file to the Desktop. Once ran, a full offline folder structure with all downloaded packages will appear in a folder on the Desktop called: '$env:USERPROFILE\Desktop\ASUS-G635LW-Installer-Content\'. To utilize as a portable offline installer, simply copy entire '\Desktop\ASUS-G635LW-Installer-Content\*.*' and simply roll out from external media when it's time to do no internet connection full offline driver install, by copying both the 'Win11-Phreak-Helper-v92.ps1' file to the desktop, and also the preserved directory and associated downloaded packages filetree, 'C:\Users\<USERPROFILE>\Desktop\ASUS-G635LW-Installer-Content\*.*' from your backed up storage location to new PC. 
 
+Switches: -Resume, -Reset.
+Usage: "& .\<Filename>.ps1 -Reset" ...Disables Phreak Helper's resume function which carries on over system reboots.
 
+The -Reset and -Resume switchs/flags should always be used, unless it's the script's first maiden run. A successful install goes along the lines of '.\Win11-Phreak-Helper-v92.ps1 -Resume' being executed between numerous reboots, perhaps 6-7 times before the script completion dialogue comes up, with each -Resume launch, one step closer to being fully successfully completed.
+
+'.\Win11-Phreak-Helper-v92.ps1' -Resume
+
+For the newly downloaded file's first run, type: 'powershell' in the windows searchbar and then 'right-click' 'run as Administrator'. Then copy and paste, the following:
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 Set-Location $env:USERPROFILE\Desktop
-Get-ChildItem -File -Filter "*Installerv80.ps1"
+& '.\Win11-Phreak-Helper-v92.ps1'
 
-& ".\ASUS-G635LW-Installerv80.ps1"
 
